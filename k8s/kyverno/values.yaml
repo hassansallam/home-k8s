@@ -11,6 +11,14 @@ admissionController:
 backgroundController:
   enabled: true
 
+cleanupJobs:
+  admissionReports:
+    image:
+      tag: "1.31.0"
+  clusterAdmissionReports:
+    image:
+      tag: "1.31.0"
+
 config:
   webhooks:
     - failurePolicy: Ignore
