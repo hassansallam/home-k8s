@@ -20,6 +20,8 @@ loki:
 
 singleBinary:
   replicas: 1
+  persistence:
+    enabled: false
 
 # Disable scalable components (conflicts with SingleBinary mode)
 read:
