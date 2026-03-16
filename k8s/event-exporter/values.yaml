@@ -1,5 +1,9 @@
 # Kubernetes Event Exporter Helm values
-# Logs cluster events to stdout for Promtail/log aggregator pickup
+# Override broken default Bitnami image
+image:
+  registry: ghcr.io
+  repository: resmoio/kubernetes-event-exporter
+  tag: v1.7
 
 config:
   logFormat: json
