@@ -1,0 +1,28 @@
+---
+- name: Install haproxy
+  apk:
+    name: haproxy
+    state: present
+
+- name: Ensure haproxy config directory exists
+  file:
+    path: /etc/haproxy
+    state: directory
+    mode: "0755"
+
+- name: Template haproxy configuration
+  template:
+    src: haproxy.cfg.j2
+    dest: /etc/haproxy/haproxy.cfg
+    mode: "0644"
+  notify: reload haproxy
+
+- name: Validate haproxy configuration
+  command: haproxy -c -f /etc/haproxy/haproxy.cfg
+  changed_when: false
+
+- name: Enable and start haproxy service
+  service:
+    name: haproxy
+    state: started
+    enabled: true

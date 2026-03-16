@@ -1,0 +1,14 @@
+---
+- name: Reset Talos nodes
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Reset all nodes
+      command: >
+        talosctl reset
+        --nodes {{ item }}
+        --talosconfig {{ talos_config_dir }}/talosconfig
+        --graceful=false
+        --reboot=false
+      loop: "{{ groups['controlplane'] | map('extract', hostvars, 'node_ip') | list + groups['workers'] | map('extract', hostvars, 'node_ip') | list }}"
+      ignore_errors: true

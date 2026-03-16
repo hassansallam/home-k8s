@@ -1,0 +1,56 @@
+---
+- name: Wait for Talos API on all controlplane nodes
+  wait_for:
+    host: "{{ hostvars[item]['node_ip'] }}"
+    port: 50000
+    timeout: 300
+    state: started
+  loop: "{{ groups['controlplane'] }}"
+  delegate_to: localhost
+
+- name: Wait for Talos API on all worker nodes
+  wait_for:
+    host: "{{ hostvars[item]['node_ip'] }}"
+    port: 50000
+    timeout: 300
+    state: started
+  loop: "{{ groups['workers'] }}"
+  delegate_to: localhost
+
+- name: Bootstrap etcd on first controlplane node
+  command: >
+    talosctl bootstrap
+    --nodes {{ hostvars[groups['controlplane'][0]]['node_ip'] }}
+    --talosconfig {{ talos_config_dir }}/talosconfig
+  delegate_to: localhost
+  register: bootstrap_result
+  changed_when: bootstrap_result.rc == 0
+  failed_when: bootstrap_result.rc != 0 and 'AlreadyExists' not in bootstrap_result.stderr
+
+- name: Wait for Kubernetes API to be available
+  wait_for:
+    host: "{{ haproxy_ip }}"
+    port: 6443
+    timeout: 600
+    state: started
+  delegate_to: localhost
+
+- name: Fetch kubeconfig from Talos
+  command: >
+    talosctl kubeconfig {{ kubeconfig_path }}
+    --nodes {{ hostvars[groups['controlplane'][0]]['node_ip'] }}
+    --talosconfig {{ talos_config_dir }}/talosconfig
+    --force
+  delegate_to: localhost
+  changed_when: true
+
+- name: Verify kubeconfig was created
+  stat:
+    path: "{{ kubeconfig_path }}"
+  register: kubeconfig_stat
+  delegate_to: localhost
+
+- name: Fail if kubeconfig was not created
+  fail:
+    msg: "Kubeconfig was not created at {{ kubeconfig_path }}"
+  when: not kubeconfig_stat.stat.exists

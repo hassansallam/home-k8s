@@ -1,0 +1,9 @@
+---
+- name: Generate and apply Talos machine configs
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yml
+  roles:
+    - talos_config
+    - talos_apply

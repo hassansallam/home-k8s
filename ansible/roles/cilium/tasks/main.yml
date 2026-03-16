@@ -1,0 +1,61 @@
+---
+- name: Add Cilium Helm repository
+  command: helm repo add cilium https://helm.cilium.io/
+  changed_when: true
+  ignore_errors: true
+
+- name: Update Helm repositories
+  command: helm repo update
+  changed_when: false
+
+- name: Wait for Kubernetes API to be fully ready
+  command: kubectl cluster-info
+  changed_when: false
+  retries: 12
+  delay: 10
+  register: cluster_info
+  until: cluster_info.rc == 0
+
+- name: Install Cilium via Helm
+  command: >
+    helm upgrade --install cilium cilium/cilium
+    --version {{ cilium_version }}
+    --namespace kube-system
+    --set kubeProxyReplacement=true
+    --set k8sServiceHost=localhost
+    --set k8sServicePort=7445
+    --set gatewayAPI.enabled=true
+    --set hubble.enabled=true
+    --set hubble.relay.enabled=true
+    --set hubble.ui.enabled=true
+    --set securityContext.capabilities.ciliumAgent="{CHOWN,KILL,NET_ADMIN,NET_RAW,IPC_LOCK,SYS_ADMIN,SYS_RESOURCE,DAC_OVERRIDE,FOWNER,SETGID,SETUID}"
+    --set securityContext.capabilities.cleanCiliumState="{NET_ADMIN,SYS_ADMIN,SYS_RESOURCE}"
+    --set cgroup.autoMount.enabled=false
+    --set cgroup.hostRoot=/sys/fs/cgroup
+    --set ipam.mode=kubernetes
+    --wait
+    --timeout 10m
+  changed_when: true
+
+- name: Wait for Cilium pods to be ready
+  command: >
+    kubectl wait --for=condition=Ready
+    pods -l app.kubernetes.io/name=cilium-agent
+    -n kube-system
+    --timeout=300s
+  changed_when: false
+  retries: 5
+  delay: 15
+  register: cilium_ready
+  until: cilium_ready.rc == 0
+
+- name: Wait for all nodes to be Ready
+  command: >
+    kubectl wait --for=condition=Ready
+    nodes --all
+    --timeout=300s
+  changed_when: false
+  retries: 5
+  delay: 15
+  register: nodes_ready
+  until: nodes_ready.rc == 0

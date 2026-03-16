@@ -1,0 +1,10 @@
+---
+cluster_name: k8s
+cluster_endpoint: "https://{{ haproxy_ip }}:6443"
+talos_version: "v1.12.5"
+kubernetes_version: "1.35.2"
+cilium_version: "1.19.1"
+argocd_version: "v3.3.3"
+haproxy_stats_port: 8404
+talos_config_dir: "{{ playbook_dir }}/../talos-generated"
+kubeconfig_path: "{{ playbook_dir }}/../../kubeconfig"

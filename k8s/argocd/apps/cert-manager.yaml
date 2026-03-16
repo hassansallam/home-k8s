@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cert-manager
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.jetstack.io
+      chart: cert-manager
+      targetRevision: v1.20.0
+      helm:
+        valueFiles:
+          - $values/k8s/cert-manager/values.yaml
+    - repoURL: https://github.com/CHANGEME/home-k8s.git
+      targetRevision: main
+      ref: values
+    - repoURL: https://github.com/CHANGEME/home-k8s.git
+      targetRevision: main
+      path: k8s/cert-manager/resources
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cert-manager
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

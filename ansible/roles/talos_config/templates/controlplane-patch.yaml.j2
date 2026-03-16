@@ -1,0 +1,22 @@
+machine:
+  network:
+    interfaces:
+      - interface: eth0
+        addresses:
+          - {{ hostvars[item]['node_ip'] }}/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: {{ gateway }}
+    nameservers:
+      - {{ dns_server }}
+  install:
+    disk: /dev/vda
+  certSANs:
+    - {{ hostvars[item]['node_ip'] }}
+    - {{ haproxy_ip }}
+cluster:
+  network:
+    cni:
+      name: none
+  proxy:
+    disabled: true

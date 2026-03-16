@@ -1,0 +1,20 @@
+# Terraform/OpenTofu
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+tofu/files/
+
+# Ansible
+ansible/talos-generated/
+
+# Environment
+.env
+
+# OS
+.DS_Store
+*.swp
+*.swo
+
+# Kubeconfig
+kubeconfig

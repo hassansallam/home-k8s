@@ -1,0 +1,18 @@
+---
+- name: Configure HAProxy
+  import_playbook: haproxy.yml
+
+- name: Generate and apply Talos machine configs
+  import_playbook: talos-config.yml
+
+- name: Bootstrap Talos cluster
+  import_playbook: talos-bootstrap.yml
+
+- name: Install Cilium CNI
+  import_playbook: cilium.yml
+
+- name: Fetch kubeconfig
+  import_playbook: kubeconfig.yml
+
+- name: Bootstrap ArgoCD
+  import_playbook: argocd-bootstrap.yml

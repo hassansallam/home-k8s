@@ -1,0 +1,42 @@
+global
+    log /dev/log local0
+    maxconn 2048
+    daemon
+
+defaults
+    log     global
+    mode    tcp
+    option  tcplog
+    timeout connect 5s
+    timeout client  30s
+    timeout server  30s
+    retries 3
+
+frontend k8s_api
+    bind *:6443
+    default_backend k8s_api_backend
+
+backend k8s_api_backend
+    balance roundrobin
+    option tcp-check
+{% for host in groups['controlplane'] %}
+    server {{ host }} {{ hostvars[host]['node_ip'] }}:6443 check fall 3 rise 2
+{% endfor %}
+
+frontend talos_api
+    bind *:50000
+    default_backend talos_api_backend
+
+backend talos_api_backend
+    balance roundrobin
+    option tcp-check
+{% for host in groups['controlplane'] %}
+    server {{ host }} {{ hostvars[host]['node_ip'] }}:50000 check fall 3 rise 2
+{% endfor %}
+
+frontend stats
+    mode http
+    bind *:{{ haproxy_stats_port }}
+    stats enable
+    stats uri /stats
+    stats refresh 10s

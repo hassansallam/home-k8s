@@ -1,0 +1,20 @@
+---
+- name: Configure HAProxy
+  hosts: haproxy
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yml
+  pre_tasks:
+    - name: Wait for HAProxy VM to be reachable
+      wait_for_connection:
+        delay: 10
+        timeout: 300
+    - name: Wait for cloud-init to finish
+      command: cloud-init status --wait
+      changed_when: false
+      failed_when: false
+      timeout: 300
+    - name: Gather facts
+      setup:
+  roles:
+    - haproxy

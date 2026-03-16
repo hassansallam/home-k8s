@@ -1,0 +1,50 @@
+---
+- name: Create Talos config output directory
+  file:
+    path: "{{ talos_config_dir }}"
+    state: directory
+    mode: "0750"
+
+- name: Generate Talos machine configs
+  command: >
+    talosctl gen config
+    {{ cluster_name }}
+    {{ cluster_endpoint }}
+    --output-dir {{ talos_config_dir }}
+    --talos-version {{ talos_version }}
+    --kubernetes-version {{ kubernetes_version }}
+    --force
+  args:
+    creates: "{{ talos_config_dir }}/talosconfig"
+
+- name: Template controlplane node patches
+  template:
+    src: controlplane-patch.yaml.j2
+    dest: "{{ talos_config_dir }}/patch-{{ item }}.yaml"
+    mode: "0640"
+  loop: "{{ groups['controlplane'] }}"
+
+- name: Template worker node patches
+  template:
+    src: worker-patch.yaml.j2
+    dest: "{{ talos_config_dir }}/patch-{{ item }}.yaml"
+    mode: "0640"
+  loop: "{{ groups['workers'] }}"
+
+- name: Generate controlplane configs with node-specific patches
+  command: >
+    talosctl machineconfig patch
+    {{ talos_config_dir }}/controlplane.yaml
+    --patch @{{ talos_config_dir }}/patch-{{ item }}.yaml
+    --output {{ talos_config_dir }}/{{ item }}.yaml
+  loop: "{{ groups['controlplane'] }}"
+  changed_when: true
+
+- name: Generate worker configs with node-specific patches
+  command: >
+    talosctl machineconfig patch
+    {{ talos_config_dir }}/worker.yaml
+    --patch @{{ talos_config_dir }}/patch-{{ item }}.yaml
+    --output {{ talos_config_dir }}/{{ item }}.yaml
+  loop: "{{ groups['workers'] }}"
+  changed_when: true

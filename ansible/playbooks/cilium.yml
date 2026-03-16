@@ -1,0 +1,10 @@
+---
+- name: Install Cilium CNI
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../group_vars/all.yml
+  environment:
+    KUBECONFIG: "{{ kubeconfig_path }}"
+  roles:
+    - cilium
