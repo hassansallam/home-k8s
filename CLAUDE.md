@@ -56,7 +56,19 @@ ansible-playbook playbooks/argocd-bootstrap.yml
 
 ### GitOps Pipeline
 
-ArgoCD manages cluster apps via an app-of-apps pattern. Each app in `k8s/argocd/apps/` references a Helm chart with values from `k8s/<app>/values.yaml`. Sync wave annotations control deployment order (cilium=0 → metallb=1 → cert-manager=2 → longhorn=3 → prometheus=4).
+ArgoCD manages cluster apps via an app-of-apps pattern. Each app in `k8s/argocd/apps/` references a Helm chart with values from `k8s/<app>/values.yaml`. Sync wave annotations control deployment order:
+
+- **Wave -1**: Gateway API CRDs
+- **Wave 0**: Cilium (CNI)
+- **Wave 1**: MetalLB (L2 load balancer)
+- **Wave 2**: Cert-Manager, metrics-server
+- **Wave 4**: Prometheus/Grafana
+- **Wave 5**: Loki + Promtail (log aggregation)
+- **Wave 6**: Falco, Trivy, Kyverno (security layer)
+- **Wave 7**: External Secrets, Reloader, Reflector (config/secrets)
+- **Wave 8**: Velero, Descheduler, Node Problem Detector, Event Exporter (operations)
+- **Wave 9**: VPA + Goldilocks (resource right-sizing)
+- **Wave 10**: Headlamp (K8s dashboard), Cilium Network Policies
 
 ## Key Patterns & Gotchas
 
@@ -77,6 +89,16 @@ ArgoCD manages cluster apps via an app-of-apps pattern. Each app in `k8s/argocd/
 **ArgoCD CRD size**: ArgoCD v3.x CRDs exceed the 256KB `last-applied-configuration` annotation limit. The install uses `kubectl apply --server-side --force-conflicts` to avoid this.
 
 **Cluster access**: The kubeconfig is at the project root (`kubeconfig`). Use `export KUBECONFIG=/path/to/home-k8s/kubeconfig` or pass `--kubeconfig kubeconfig` per command.
+
+**PodSecurity namespaces**: MetalLB (`metallb-system`) and monitoring (`monitoring`) namespaces require `pod-security.kubernetes.io/enforce: privileged` labels. These are set via `managedNamespaceMetadata` in their ArgoCD app manifests. Falco (`falco`) also needs privileged. New namespaces running DaemonSets with host access need this label.
+
+**Falco on Talos**: Uses `modern_ebpf` driver (no kernel module loading). Talos is immutable so kernel module-based drivers won't work.
+
+**Kyverno policies**: Deployed as a separate ArgoCD app (`kyverno-policies`) in `audit` mode to avoid blocking system workloads. Switch to `enforce` per-policy as needed.
+
+**Velero**: Deployed with placeholder config. Needs a real storage backend (MinIO, S3, etc.) before backups work.
+
+**ArgoCD private repo**: Uses an SSH deploy key (secret `home-k8s-repo` in argocd namespace) to access the private GitHub repo. All app manifests use `git@github.com:hassansallam/home-k8s.git`.
 
 ## Version Management
 
