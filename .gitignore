@@ -18,3 +18,4 @@ ansible/talos-generated/
 
 # Kubeconfig
 kubeconfig
+.argocd-deploy-key
