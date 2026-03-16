@@ -3,7 +3,7 @@ k8sServiceHost: localhost
 k8sServicePort: 7445
 
 gatewayAPI:
-  enabled: true
+  enabled: false
 
 hubble:
   enabled: true
