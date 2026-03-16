@@ -1,0 +1,4 @@
+# metrics-server Helm values
+# Talos uses self-signed kubelet serving certificates
+args:
+  - --kubelet-insecure-tls

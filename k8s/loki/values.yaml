@@ -1,0 +1,31 @@
+# Loki Helm values
+# Single-binary deployment for homelab use
+deploymentMode: SingleBinary
+
+loki:
+  auth_enabled: false
+  commonConfig:
+    replication_factor: 1
+  storage:
+    type: filesystem
+
+singleBinary:
+  replicas: 1
+
+chunksCache:
+  enabled: false
+
+resultsCache:
+  enabled: false
+
+monitoring:
+  selfMonitoring:
+    enabled: false
+  lokiCanary:
+    enabled: false
+
+test:
+  enabled: false
+
+gateway:
+  enabled: false

@@ -1,0 +1,23 @@
+schedule: "*/5 * * * *"
+
+deschedulerPolicy:
+  strategies:
+    RemoveDuplicates:
+      enabled: true
+    LowNodeUtilization:
+      enabled: true
+      params:
+        nodeResourceUtilizationThresholds:
+          thresholds:
+            cpu: 20
+            memory: 20
+            pods: 20
+          targetThresholds:
+            cpu: 50
+            memory: 50
+            pods: 50
+    RemovePodsViolatingNodeAffinity:
+      enabled: true
+      params:
+        nodeAffinityType:
+          - requiredDuringSchedulingIgnoredDuringExecution

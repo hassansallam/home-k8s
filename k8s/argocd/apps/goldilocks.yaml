@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: goldilocks
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "9"
+spec:
+  project: default
+  sources:
+    - repoURL: https://charts.fairwinds.com/stable
+      chart: goldilocks
+      targetRevision: 9.0.1
+      helm:
+        valueFiles:
+          - $values/k8s/goldilocks/values.yaml
+    - repoURL: git@github.com:hassansallam/home-k8s.git
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: goldilocks
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

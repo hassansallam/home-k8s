@@ -1,0 +1,11 @@
+# Kubernetes Event Exporter Helm values
+# Logs cluster events to stdout for Promtail/log aggregator pickup
+
+config:
+  receivers:
+    - name: dump
+      stdout: {}
+  route:
+    routes:
+      - match:
+          - receiver: dump

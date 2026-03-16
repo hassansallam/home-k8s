@@ -1,0 +1,7 @@
+# Goldilocks Helm values
+# Dashboard for VPA resource recommendations
+
+dashboard:
+  enabled: true
+  service:
+    type: ClusterIP

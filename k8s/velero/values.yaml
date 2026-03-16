@@ -1,0 +1,18 @@
+# Velero Helm values
+# Placeholder config - configure a storage provider before enabling backups
+
+configuration:
+  backupStorageLocation:
+    - provider: "velero.io/aws"
+      bucket: "velero-backups"
+
+snapshotsEnabled: false
+deployNodeAgent: false
+
+initContainers: []
+
+schedules:
+  daily:
+    schedule: "0 3 * * *"
+    template:
+      ttl: "168h0m0s"

@@ -1,0 +1,2 @@
+# Reloader Helm values
+# Watches ConfigMaps and Secrets for changes and triggers rolling updates

@@ -1,0 +1,11 @@
+# VPA Helm values
+# Recommend-only mode: no automatic resource updates
+
+recommender:
+  enabled: true
+
+updater:
+  enabled: false
+
+admissionController:
+  enabled: false
