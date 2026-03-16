@@ -1,6 +1,2 @@
-# Kubernetes Dashboard Helm values
-# Access via port-forward or LoadBalancer
-
-app:
-  ingress:
-    enabled: false
+# Headlamp Helm values
+# Replaces kubernetes-dashboard (dead upstream chart)

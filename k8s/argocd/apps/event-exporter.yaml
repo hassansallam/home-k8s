@@ -10,7 +10,7 @@ spec:
   sources:
     - repoURL: https://charts.bitnami.com/bitnami
       chart: kubernetes-event-exporter
-      targetRevision: 3.4.5
+      targetRevision: 3.6.3
       helm:
         valueFiles:
           - $values/k8s/event-exporter/values.yaml

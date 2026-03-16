@@ -10,7 +10,7 @@ spec:
   sources:
     - repoURL: https://charts.deliveryhero.io
       chart: node-problem-detector
-      targetRevision: 2.3.13
+      targetRevision: 2.3.14
       helm:
         valueFiles:
           - $values/k8s/node-problem-detector/values.yaml
