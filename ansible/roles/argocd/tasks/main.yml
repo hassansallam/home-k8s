@@ -11,6 +11,23 @@
     -f https://raw.githubusercontent.com/argoproj/argo-cd/{{ argocd_version }}/manifests/install.yaml
   changed_when: true
 
+- name: Throttle ArgoCD sync concurrency
+  command: >
+    kubectl patch configmap argocd-cmd-params-cm -n argocd
+    --type merge -p '{"data":{"controller.operation.processors":"2","controller.status.processors":"5"}}'
+  changed_when: true
+
+- name: Increase ArgoCD repo-server and controller resources
+  command: "{{ item }}"
+  loop:
+    - >
+      kubectl patch deployment argocd-repo-server -n argocd --type json
+      -p '[{"op":"replace","path":"/spec/template/spec/containers/0/resources","value":{"requests":{"cpu":"250m","memory":"512Mi"},"limits":{"memory":"1Gi"}}},{"op":"replace","path":"/spec/template/spec/containers/0/livenessProbe/timeoutSeconds","value":30},{"op":"replace","path":"/spec/template/spec/containers/0/readinessProbe/timeoutSeconds","value":30}]'
+    - >
+      kubectl patch statefulset argocd-application-controller -n argocd --type json
+      -p '[{"op":"replace","path":"/spec/template/spec/containers/0/resources","value":{"requests":{"cpu":"500m","memory":"512Mi"},"limits":{"memory":"2Gi"}}},{"op":"replace","path":"/spec/template/spec/containers/0/readinessProbe/timeoutSeconds","value":30},{"op":"replace","path":"/spec/template/spec/containers/0/readinessProbe/failureThreshold","value":30}]'
+  changed_when: true
+
 - name: Wait for argocd-server deployment to be available
   command: >
     kubectl wait --for=condition=Available
