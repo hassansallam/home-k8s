@@ -14,7 +14,7 @@ spec:
       helm:
         valueFiles:
           - $values/k8s/promtail/values.yaml
-    - repoURL: git@github.com:hassansallam/home-k8s.git
+    - repoURL: https://github.com/hassansallam/home-k8s.git
       targetRevision: main
       ref: values
   destination:

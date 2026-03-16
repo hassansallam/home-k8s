@@ -51,31 +51,3 @@
   when: app_of_apps_manifest.stat.exists
   changed_when: true
 
-- name: Check if ArgoCD deploy key exists
-  stat:
-    path: "{{ playbook_dir }}/../../.argocd-deploy-key"
-  register: deploy_key_file
-
-- name: Generate ArgoCD repo SSH secret manifest
-  command: >
-    kubectl create secret generic home-k8s-repo
-    --namespace argocd
-    --from-literal=type=git
-    --from-literal=url=git@github.com:hassansallam/home-k8s.git
-    --from-file=sshPrivateKey={{ playbook_dir }}/../../.argocd-deploy-key
-    --dry-run=client -o yaml
-  register: repo_secret
-  changed_when: false
-  when: deploy_key_file.stat.exists
-
-- name: Apply ArgoCD repo SSH secret
-  shell: echo "{{ repo_secret.stdout }}" | kubectl apply -f -
-  changed_when: true
-  when: deploy_key_file.stat.exists
-
-- name: Label repo secret for ArgoCD
-  command: >
-    kubectl label secret home-k8s-repo -n argocd
-    argocd.argoproj.io/secret-type=repository --overwrite
-  changed_when: true
-  when: deploy_key_file.stat.exists
