@@ -14,10 +14,10 @@ spec:
       helm:
         valueFiles:
           - $values/k8s/metallb/values.yaml
-    - repoURL: https://github.com/hassansallam/home-k8s.git
+    - repoURL: git@github.com:hassansallam/home-k8s.git
       targetRevision: main
       ref: values
-    - repoURL: https://github.com/hassansallam/home-k8s.git
+    - repoURL: git@github.com:hassansallam/home-k8s.git
       targetRevision: main
       path: k8s/metallb/resources
   destination:
