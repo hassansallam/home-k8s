@@ -1,2 +1,3 @@
 # MetalLB Helm values
-# Minimal config - pools defined via CRs
+# Speakers need NET_ADMIN, NET_RAW, SYS_ADMIN, hostNetwork
+# Namespace must be privileged for PodSecurity admission
