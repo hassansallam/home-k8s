@@ -2,6 +2,7 @@
 # Logs cluster events to stdout for Promtail/log aggregator pickup
 
 config:
+  logFormat: json
   receivers:
     - name: dump
       stdout: {}
