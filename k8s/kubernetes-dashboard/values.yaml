@@ -1,2 +1,5 @@
 # Headlamp Helm values
-# Replaces kubernetes-dashboard (dead upstream chart)
+config:
+  inCluster: true
+  inClusterContextName: "k8s"
+  sessionTTL: 0
