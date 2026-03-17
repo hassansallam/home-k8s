@@ -11,13 +11,13 @@ admissionController:
 backgroundController:
   enabled: true
 
-cleanupJobs:
-  admissionReports:
-    image:
-      tag: "1.31.0"
-  clusterAdmissionReports:
-    image:
-      tag: "1.31.0"
+webhooksCleanup:
+  image:
+    tag: "1.31.0"
+
+policyReportsCleanup:
+  image:
+    tag: "1.31.0"
 
 features:
   forceFailurePolicyIgnore:
