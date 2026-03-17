@@ -1,5 +1,9 @@
 # Kubernetes Event Exporter Helm values
 # Override broken default Bitnami image
+global:
+  security:
+    allowInsecureImages: true
+
 image:
   registry: ghcr.io
   repository: resmoio/kubernetes-event-exporter

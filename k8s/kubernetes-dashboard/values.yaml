@@ -2,4 +2,4 @@
 config:
   inCluster: true
   inClusterContextName: "k8s"
-  sessionTTL: 0
+  sessionTTL: 1
