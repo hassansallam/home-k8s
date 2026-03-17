@@ -19,6 +19,6 @@ cleanupJobs:
     image:
       tag: "1.31.0"
 
-config:
-  webhooks:
-    - failurePolicy: Ignore
+features:
+  forceFailurePolicyIgnore:
+    enabled: true
