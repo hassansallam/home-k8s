@@ -44,7 +44,7 @@ All managed component versions and their official sources.
 | Loki | `6.55.0` | [Helm Chart](https://grafana.github.io/helm-charts) |
 | Promtail | `6.17.1` | [Helm Chart](https://grafana.github.io/helm-charts) |
 | metrics-server | `3.13.0` | [Helm Chart](https://kubernetes-sigs.github.io/metrics-server) |
-| Event Exporter | `3.6.3` | [Helm Chart](https://charts.bitnami.com/bitnami) |
+| Event Exporter | `3.5.0` | [Helm Chart](https://charts.bitnami.com/bitnami) |
 | Node Problem Detector | `2.3.14` | [Helm Chart](https://charts.deliveryhero.io) |
 
 ## Cluster components — Security
@@ -53,7 +53,7 @@ All managed component versions and their official sources.
 |-----------|--------------|--------|
 | Falco | `8.0.1` | [Helm Chart](https://falcosecurity.github.io/charts) |
 | Trivy Operator | `0.32.1` | [Helm Chart](https://aquasecurity.github.io/helm-charts) |
-| Kyverno | `3.7.1` | [Helm Chart](https://kyverno.github.io/kyverno) |
+| Kyverno | `3.3.8` | [Helm Chart](https://kyverno.github.io/kyverno) |
 | Cilium Network Policies | N/A | Raw manifests in `k8s/cilium-policies/` |
 
 ## Cluster components — Operations
@@ -63,7 +63,6 @@ All managed component versions and their official sources.
 | External Secrets Operator | `2.1.0` | [Helm Chart](https://charts.external-secrets.io) |
 | Reloader | `2.2.9` | [Helm Chart](https://stakater.github.io/stakater-charts) |
 | Reflector | `10.0.20` | [Helm Chart](https://emberstack.github.io/helm-charts) |
-| Velero | `12.0.0` | [Helm Chart](https://vmware-tanzu.github.io/helm-charts) |
 | Descheduler | `0.35.1` | [Helm Chart](https://kubernetes-sigs.github.io/descheduler) |
 
 ## Cluster components — Right-sizing & UI
@@ -72,13 +71,14 @@ All managed component versions and their official sources.
 |-----------|--------------|--------|
 | VPA | `4.10.2` | [Helm Chart](https://charts.fairwinds.com/stable) |
 | Goldilocks | `10.3.0` | [Helm Chart](https://charts.fairwinds.com/stable) |
-| Headlamp (K8s Dashboard) | `0.40.1` | [Helm Chart](https://kubernetes-sigs.github.io/headlamp) |
+| Headlamp (K8s Dashboard) | `0.39.0` | [Helm Chart](https://kubernetes-sigs.github.io/headlamp) |
 
 ## Disabled components
 
 | Component | Chart Version | Reason |
 |-----------|--------------|--------|
 | Longhorn | `1.11.0` | Requires Talos `iscsi-tools` system extension |
+| Velero | `12.0.0` | No storage backend configured (S3/MinIO needed) |
 
 ## Version locations
 
@@ -102,6 +102,10 @@ Host tool versions are kept latest via `make prereqs`. Cluster component version
 - HAProxy 3.0+ dropped support for inline `option httpchk` syntax — use `option tcp-check` or `http-check send`
 - Talos image includes the `qemu-guest-agent` system extension — VMs must have a virtio serial channel configured
 - Falco uses `modern_ebpf` driver (no kernel modules — compatible with Talos)
-- Kyverno policies are in `audit` mode by default to avoid breaking system pods
+- Kyverno 3.3.8 used instead of latest 3.7.x (breaking API changes in newer versions)
+- Kyverno `webhooksCleanup.image.tag` and `policyReportsCleanup.image.tag` overridden to `1.31.0` (default `bitnami/kubectl:1.30.2` doesn't exist on Docker Hub)
+- Event Exporter uses chart 3.5.0 with non-Bitnami image override (`ghcr.io/resmoio/kubernetes-event-exporter:v1.7`)
+- Headlamp uses chart 0.39.0 (0.40.1 has broken `--session-ttl` flag)
 - VPA runs in recommend-only mode (no automatic pod resizing)
-- Velero needs a storage backend configured separately (placeholder config)
+- Loki runs in SingleBinary mode with emptyDir storage (no CSI provisioner)
+- Velero disabled — code preserved in `k8s/argocd/apps/velero.yaml.disabled`

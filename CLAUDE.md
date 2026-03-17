@@ -56,7 +56,7 @@ ansible-playbook playbooks/argocd-bootstrap.yml
 
 ### GitOps Pipeline
 
-ArgoCD manages cluster apps via an app-of-apps pattern. Each app in `k8s/argocd/apps/` references a Helm chart with values from `k8s/<app>/values.yaml`. Sync wave annotations control deployment order:
+ArgoCD manages cluster apps via an app-of-apps pattern. Each app in `k8s/argocd/apps/` references a Helm chart with values from `k8s/<app>/values.yaml`. Sync wave annotations control deployment order. ArgoCD is configured with `controller.operation.processors: 1` to sync one app at a time, preventing Cilium BPF overload on startup.
 
 - **Wave -1**: Gateway API CRDs
 - **Wave 0**: Cilium (CNI)
@@ -66,7 +66,7 @@ ArgoCD manages cluster apps via an app-of-apps pattern. Each app in `k8s/argocd/
 - **Wave 5**: Loki + Promtail (log aggregation)
 - **Wave 6**: Falco, Trivy, Kyverno (security layer)
 - **Wave 7**: External Secrets, Reloader, Reflector (config/secrets)
-- **Wave 8**: Velero, Descheduler, Node Problem Detector, Event Exporter (operations)
+- **Wave 8**: Descheduler, Node Problem Detector, Event Exporter (operations)
 - **Wave 9**: VPA + Goldilocks (resource right-sizing)
 - **Wave 10**: Headlamp (K8s dashboard), Cilium Network Policies
 
@@ -88,17 +88,31 @@ ArgoCD manages cluster apps via an app-of-apps pattern. Each app in `k8s/argocd/
 
 **ArgoCD CRD size**: ArgoCD v3.x CRDs exceed the 256KB `last-applied-configuration` annotation limit. The install uses `kubectl apply --server-side --force-conflicts` to avoid this.
 
+**ArgoCD sequential sync**: `controller.operation.processors` is set to `1` to prevent deployment storms that overwhelm Cilium's BPF datapath. Apps deploy one at a time in sync-wave order.
+
 **Cluster access**: The kubeconfig is at the project root (`kubeconfig`). Use `export KUBECONFIG=/path/to/home-k8s/kubeconfig` or pass `--kubeconfig kubeconfig` per command.
 
 **PodSecurity namespaces**: MetalLB (`metallb-system`) and monitoring (`monitoring`) namespaces require `pod-security.kubernetes.io/enforce: privileged` labels. These are set via `managedNamespaceMetadata` in their ArgoCD app manifests. Falco (`falco`) also needs privileged. New namespaces running DaemonSets with host access need this label.
 
 **Falco on Talos**: Uses `modern_ebpf` driver (no kernel module loading). Talos is immutable so kernel module-based drivers won't work.
 
-**Kyverno policies**: Deployed as a separate ArgoCD app (`kyverno-policies`) in `audit` mode to avoid blocking system workloads. Switch to `enforce` per-policy as needed.
+**Kyverno webhooks**: Use `features.forceFailurePolicyIgnore.enabled: true` in values to set all webhook failurePolicies to Ignore. Without this, a Kyverno outage blocks ALL Kubernetes operations cluster-wide. The `config.webhooks` key in chart 3.3.8 is an object (not a list) — do not pass a list format.
 
-**Velero**: Deployed with placeholder config. Needs a real storage backend (MinIO, S3, etc.) before backups work.
+**Kyverno cleanup jobs**: The chart default image `bitnami/kubectl:1.30.2` does not exist on Docker Hub. Override with `webhooksCleanup.image.tag` and `policyReportsCleanup.image.tag` set to a valid version like `1.31.0`.
 
-**ArgoCD private repo**: Uses an SSH deploy key (secret `home-k8s-repo` in argocd namespace) to access the private GitHub repo. All app manifests use `git@github.com:hassansallam/home-k8s.git`.
+**Cilium network policies**: CiliumClusterwideNetworkPolicies with `endpointSelector: {}` activate enforcement on ALL pods. NEVER use `ingressDeny` with `ingress` allows in the same policy — deny always overrides allow. NEVER add an egress policy with `endpointSelector: {}` unless you explicitly allow K8s API, DNS, and all needed egress. The current baseline policy (`allow-cluster-ingress`) allows all cluster-internal and local-network ingress with no egress enforcement.
+
+**Cilium auto-generated secrets**: Cilium generates CA and Hubble TLS certificates as Secrets. The ArgoCD cilium app uses `ignoreDifferences` for Secret data and `RespectIgnoreDifferences=true` sync option to prevent perpetual OutOfSync.
+
+**Loki on homelab**: Runs in SingleBinary mode. Must explicitly set `read/write/backend.replicas: 0` to avoid chart validation error. Uses `emptyDir` for `/var/loki` (no persistent storage provisioner). The container has `readOnlyRootFilesystem: true`, so an explicit emptyDir volume mount at `/var/loki` is required.
+
+**Event Exporter image override**: When using non-Bitnami images with the Bitnami chart, set `global.security.allowInsecureImages: true` in values — otherwise the chart blocks deployment.
+
+**Headlamp chart compatibility**: Chart 0.40.1 passes `--session-ttl` flag that the binary doesn't support. Use chart 0.39.0 instead.
+
+**Velero**: Disabled (`.yaml.disabled`). Code preserved but not deployed. Needs a real storage backend (MinIO, S3, etc.) before enabling.
+
+**ArgoCD public repo**: The GitHub repo is public. All app manifests use `https://github.com/hassansallam/home-k8s.git`.
 
 ## Version Management
 
